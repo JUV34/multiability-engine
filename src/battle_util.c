@@ -674,7 +674,7 @@ void HandleAction_Run(void)
         else
         {
             if (GetBattlerHoldEffect(gBattlerAttacker) != HOLD_EFFECT_CAN_ALWAYS_RUN
-             && GetBattlerAbility(gBattlerAttacker) != ABILITY_RUN_AWAY
+             && !BattlerHasAbility(gBattlerAttacker, ABILITY_RUN_AWAY)
              && !CanBattlerEscape(gBattlerAttacker))
             {
                 gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_ATTACKER_CANT_ESCAPE;
@@ -1529,7 +1529,7 @@ u32 TrySetCantSelectMoveBattleScript(enum BattlerId battler)
             limitations++;
         }
     }
-    if (DYNAMAX_BYPASS_CHECK && (GetBattlerAbility(battler) == ABILITY_GORILLA_TACTICS) && *choicedMove != MOVE_NONE
+    if (DYNAMAX_BYPASS_CHECK && BattlerHasAbility(battler, ABILITY_GORILLA_TACTICS) && *choicedMove != MOVE_NONE
               && *choicedMove != MOVE_UNAVAILABLE && *choicedMove != move)
     {
         gCurrentMove = *choicedMove;
@@ -1639,7 +1639,7 @@ u32 CheckMoveLimitations(enum BattlerId battler, u8 unusableMoves, u16 check)
         else if (check & MOVE_LIMITATION_STUFF_CHEEKS && moveEffect == EFFECT_STUFF_CHEEKS && GetItemPocket(gBattleMons[battler].item) != POCKET_BERRIES)
             unusableMoves |= 1u << i;
         // Gorilla Tactics
-        else if (check & MOVE_LIMITATION_CHOICE_ITEM && GetBattlerAbility(battler) == ABILITY_GORILLA_TACTICS && *choicedMove != MOVE_NONE && *choicedMove != MOVE_UNAVAILABLE && *choicedMove != move)
+        else if (check & MOVE_LIMITATION_CHOICE_ITEM && BattlerHasAbility(battler, ABILITY_GORILLA_TACTICS) && *choicedMove != MOVE_NONE && *choicedMove != MOVE_UNAVAILABLE && *choicedMove != move)
             unusableMoves |= 1u << i;
         // Can't Use Twice flag
         else if (check & MOVE_LIMITATION_CANT_USE_TWICE && MoveCantBeUsedTwice(move) && move == gLastResultingMoves[battler])
@@ -4451,7 +4451,7 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
                     if (!(magicianTargets & 1u << targetBattler))
                         continue;
 
-                    if (GetBattlerAbility(targetBattler) == ABILITY_STICKY_HOLD && IsBattlerAlive(targetBattler))
+                    if (BattlerHasAbility(targetBattler, ABILITY_STICKY_HOLD) && IsBattlerAlive(targetBattler))
                     {
                         effect = FALSE;
                         break;
@@ -9962,7 +9962,7 @@ bool32 EmergencyExitCanBeTriggered(enum BattlerId battler, enum Ability ability)
 
 bool32 TryTriggerSymbiosis(enum BattlerId battler, u32 ally)
 {
-    return GetBattlerAbility(ally) == ABILITY_SYMBIOSIS
+    return BattlerHasAbility(ally, ABILITY_SYMBIOSIS)
         && gBattleMons[battler].item == ITEM_NONE
         && gBattleMons[ally].item != ITEM_NONE
         && CanBattlerGetOrLoseItem(battler, ally, gBattleMons[ally].item)

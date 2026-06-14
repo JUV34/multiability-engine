@@ -434,7 +434,7 @@ static enum StatChangeResult IncreaseStat(struct BattleCalcValues *cv, struct St
                 if (IsBattlerAlly(battler, cv->battlerDef))
                     continue; // Only triggers on opposing side
 
-                if (GetBattlerAbility(battler) == ABILITY_OPPORTUNIST
+                if (BattlerHasAbility(battler, ABILITY_OPPORTUNIST)
                  && gProtectStructs[cv->battlerDef].activateOpportunist == 0) // don't activate opportunist on other mon's opportunist raises
                 {
                     gProtectStructs[battler].activateOpportunist = 2;      // set stats to copy

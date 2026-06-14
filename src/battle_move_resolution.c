@@ -257,7 +257,7 @@ static enum CancelerResult CancelerPowerPoints(struct BattleCalcValues *cv)
 
 static enum CancelerResult CancelerTruant(struct BattleCalcValues *cv)
 {
-    if (GetBattlerAbility(cv->battlerAtk) == ABILITY_TRUANT && gBattleMons[cv->battlerAtk].volatiles.truantCounter)
+    if (BattlerHasAbility(cv->battlerAtk, ABILITY_TRUANT) && gBattleMons[cv->battlerAtk].volatiles.truantCounter)
     {
         CancelMultiTurnMoves(cv->battlerAtk);
         gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_LOAFING;
@@ -994,12 +994,12 @@ static enum CancelerResult CancelerPPDeduction(struct BattleCalcValues *cv)
         for (u32 i = 0; i < gBattlersCount; i++)
         {
             if (!IsBattlerAlly(i, cv->battlerAtk))
-                ppToDeduct += (GetBattlerAbility(i) == ABILITY_PRESSURE);
+                ppToDeduct += BattlerHasAbility(i, ABILITY_PRESSURE);
         }
     }
     else if (moveTarget != TARGET_OPPONENTS_FIELD)
     {
-        if (cv->battlerAtk != cv->battlerDef && GetBattlerAbility(cv->battlerDef) == ABILITY_PRESSURE)
+        if (cv->battlerAtk != cv->battlerDef && BattlerHasAbility(cv->battlerDef, ABILITY_PRESSURE))
              ppToDeduct++;
     }
 
@@ -3740,7 +3740,7 @@ static bool32 TryRedCard(enum BattlerId battlerAtk, enum BattlerId redCardBattle
     gBattleScripting.battler = gBattlerTarget = redCardBattler;
     gEffectBattler = battlerAtk;
     if (gBattleStruct->battlerState[battlerAtk].commanderSpecies != SPECIES_NONE
-     || GetBattlerAbility(battlerAtk) == ABILITY_GUARD_DOG
+     || BattlerHasAbility(battlerAtk, ABILITY_GUARD_DOG)
      || GetActiveGimmick(battlerAtk) == GIMMICK_DYNAMAX)
         BattleScriptCall(BattleScript_RedCardActivationNoSwitch);
     else
@@ -4575,7 +4575,7 @@ static enum MoveResult StatChangeMirrorArmor(struct BattleCalcValues *cv)
          || cv->battlerAtk == battler)
             continue;
 
-        if (GetBattlerAbility(battler) == ABILITY_MIRROR_ARMOR)
+        if (BattlerHasAbility(battler, ABILITY_MIRROR_ARMOR))
             gBattleStruct->moveResultFlags[battler] = MOVE_RESULT_MIRROR_ARMOR_PENDING;
     }
 
@@ -5090,7 +5090,7 @@ static enum Move GetSleepTalkMove(void)
 
     u32 i, unusableMovesBits = 0, movePosition;
 
-    if (GetBattlerAbility(gBattlerAttacker) != ABILITY_COMATOSE
+    if (!BattlerHasAbility(gBattlerAttacker, ABILITY_COMATOSE)
      && !(gBattleMons[gBattlerAttacker].status1 & STATUS1_SLEEP))
         return move;
 

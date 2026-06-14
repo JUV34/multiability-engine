@@ -2079,7 +2079,7 @@ void StealTargetItem(enum BattlerId battlerStealer, enum BattlerId itemBattler)
     BtlController_EmitSetMonData(itemBattler, B_COMM_TO_CONTROLLER, REQUEST_HELDITEM_BATTLE, 0, sizeof(gBattleMons[itemBattler].item), &gBattleMons[itemBattler].item);  // remove target item
     MarkBattlerForControllerExec(itemBattler);
 
-    if (GetBattlerAbility(itemBattler) != ABILITY_GORILLA_TACTICS)
+    if (!BattlerHasAbility(itemBattler, ABILITY_GORILLA_TACTICS))
         gBattleStruct->choicedMove[itemBattler] = MOVE_NONE;
 
     TrySaveExchangedItem(itemBattler, gLastUsedItem);
@@ -5441,7 +5441,7 @@ static void UpdateSentMonFlags(enum BattlerId battler)
 
     // There is a hack here to ensure the truant counter will be 0 when the battler's next turn starts.
     // The truant counter is not updated in the case where a mon switches in after a lost judgment in the battle arena.
-    if (GetBattlerAbility(battler) == ABILITY_TRUANT
+    if (BattlerHasAbility(battler, ABILITY_TRUANT)
      && gCurrentActionFuncId != B_ACTION_USE_MOVE
      && !gBattleMons[battler].volatiles.truantSwitchInHack)
         gBattleMons[battler].volatiles.truantCounter = 1;
@@ -6170,7 +6170,7 @@ static void Cmd_setgravity(void)
 static bool32 TryCheekPouch(enum BattlerId battler, enum Item itemId, const u8 *nextInstr)
 {
     if (GetItemPocket(itemId) == POCKET_BERRIES
-        && GetBattlerAbility(battler) == ABILITY_CHEEK_POUCH
+        && BattlerHasAbility(battler, ABILITY_CHEEK_POUCH)
         && !gBattleMons[battler].volatiles.healBlock
         && GetBattlerPartyState(battler)->ateBerry
         && !IsBattlerAtMaxHp(battler))
@@ -7121,7 +7121,7 @@ static void Cmd_trysetrest(void)
 bool8 UproarWakeUpCheck(enum BattlerId battler)
 {
     enum BattlerId i;
-    bool32 hasSoundproof = (GetConfig(B_UPROAR_IGNORE_SOUNDPROOF) < GEN_5 && GetBattlerAbility(battler) == ABILITY_SOUNDPROOF);
+    bool32 hasSoundproof = (GetConfig(B_UPROAR_IGNORE_SOUNDPROOF) < GEN_5 && BattlerHasAbility(battler, ABILITY_SOUNDPROOF));
 
     for (i = 0; i < gBattlersCount; i++)
     {
@@ -9571,7 +9571,7 @@ static void Cmd_tryrecycleitem(void)
 
     u16 *usedHeldItem;
 
-    if (gCurrentMove == MOVE_NONE && GetBattlerAbility(gBattlerAttacker) == ABILITY_PICKUP)
+    if (gCurrentMove == MOVE_NONE && BattlerHasAbility(gBattlerAttacker, ABILITY_PICKUP))
         usedHeldItem = &GetBattlerPartyState(gBattlerTarget)->usedHeldItem;
     else
         usedHeldItem = &GetBattlerPartyState(gBattlerAttacker)->usedHeldItem;
@@ -11643,7 +11643,7 @@ void BS_TryHealPulse(void)
     else
     {
         s32 healAmount = 0;
-        if (GetBattlerAbility(gBattlerAttacker) == ABILITY_MEGA_LAUNCHER && IsPulseMove(gCurrentMove))
+        if (BattlerHasAbility(gBattlerAttacker, ABILITY_MEGA_LAUNCHER) && IsPulseMove(gCurrentMove))
             healAmount = GetNonDynamaxMaxHP(gBattlerTarget) * 75 / 100;
         else if (gFieldStatuses & STATUS_FIELD_GRASSY_TERRAIN && GetMoveEffectArg_MoveProperty(gCurrentMove) == MOVE_EFFECT_FLORAL_HEALING)
             healAmount = GetNonDynamaxMaxHP(gBattlerTarget) * 2 / 3;
@@ -12029,7 +12029,7 @@ void BS_CheckPokeFlute(void)
 
     for (enum BattlerId i = 0; i < gBattlersCount; i++)
     {
-        if (GetBattlerAbility(i) != ABILITY_SOUNDPROOF)
+        if (!BattlerHasAbility(i, ABILITY_SOUNDPROOF))
         {
             gBattleMons[i].status1 &= ~STATUS1_SLEEP;
             gBattleMons[i].volatiles.nightmare = FALSE;
@@ -13837,7 +13837,7 @@ void BS_TryWakeBattlersUproar(void)
     while (gBattleScripting.battler < gBattlersCount)
     {
         enum BattlerId battler = gBattleScripting.battler++;
-        bool32 hasSoundproof = GetConfig(B_UPROAR_IGNORE_SOUNDPROOF) < GEN_5 && GetBattlerAbility(battler) == ABILITY_SOUNDPROOF;
+        bool32 hasSoundproof = GetConfig(B_UPROAR_IGNORE_SOUNDPROOF) < GEN_5 && BattlerHasAbility(battler, ABILITY_SOUNDPROOF);
 
         if (IsBattlerAlive(battler) && gBattleMons[battler].status1 & STATUS1_SLEEP && !hasSoundproof)
         {
@@ -13944,4 +13944,3 @@ void BS_RestoreStatChangeQueue(void)
     ClearOtherStatChangeValues(gBattlerAttacker);
     gBattlescriptCurrInstr = cmd->nextInstr;
 }
-
