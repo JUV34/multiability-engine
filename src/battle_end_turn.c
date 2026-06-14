@@ -487,7 +487,7 @@ static bool32 HandleEndTurnLeechSeed(enum BattlerId battler)
         gBattleScripting.animArg2 = gBattlerAttacker;
         s32 drainAmount = GetNonDynamaxMaxHP(gBattlerAttacker) / 8;
         s32 healAmount = GetDrainedBigRootHp(gBattlerTarget, drainAmount);
-        if (GetBattlerAbility(battler) == ABILITY_LIQUID_OOZE)
+        if (BattlerHasAbility(battler, ABILITY_LIQUID_OOZE))
         {
             SetPassiveDamageAmount(gBattlerAttacker, drainAmount);
             SetPassiveDamageAmount(gBattlerTarget, healAmount);
@@ -614,7 +614,7 @@ static bool32 HandleEndTurnNightmare(enum BattlerId battler)
      && IsBattlerPresent(battler)
      && !IsAbilityAndRecord(battler, GetBattlerAbility(battler), ABILITY_MAGIC_GUARD))
     {
-        if (gBattleMons[battler].status1 & STATUS1_SLEEP || GetBattlerAbility(battler) == ABILITY_COMATOSE)
+        if (gBattleMons[battler].status1 & STATUS1_SLEEP || BattlerHasAbility(battler, ABILITY_COMATOSE))
         {
             SetPassiveDamageAmount(battler, GetNonDynamaxMaxHP(battler) / 4);
             BattleScriptCall(BattleScript_NightmareTurnDmg);
@@ -1281,7 +1281,7 @@ static bool32 HandleEndTurnThirdEventBlock(enum BattlerId battler)
                 if (GetConfig(B_UPROAR) >= GEN_5) // This effect is only present in pre-Gen 5 Uproar
                     break;
 
-                bool32 hasSoundproof = GetConfig(B_UPROAR_IGNORE_SOUNDPROOF) < GEN_5 && GetBattlerAbility(gEffectBattler) == ABILITY_SOUNDPROOF;
+                bool32 hasSoundproof = GetConfig(B_UPROAR_IGNORE_SOUNDPROOF) < GEN_5 && BattlerHasAbility(gEffectBattler, ABILITY_SOUNDPROOF);
 
                 if ((gBattleMons[gEffectBattler].status1 & STATUS1_SLEEP)
                  && !hasSoundproof)
