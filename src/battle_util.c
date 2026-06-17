@@ -4840,9 +4840,27 @@ enum Ability GetBattlerAbility(enum BattlerId battler)
     return GetBattlerAbilityInternal(battler, FALSE, FALSE);
 }
 
+enum Ability GetBattlerAbilityAt(enum BattlerId battler, u32 slot)
+{
+    switch (slot)
+    {
+    case 0:
+        return GetBattlerAbility(battler);
+    default:
+        return ABILITY_NONE;
+    }
+}
+
 bool32 BattlerHasAbility(enum BattlerId battler, enum Ability ability)
 {
-    return GetBattlerAbility(battler) == ability;
+    for (u32 i = 0; i < MAX_BATTLER_ABILITIES; i++)
+    {
+        enum Ability battlerAbility = GetBattlerAbilityAt(battler, i);
+        if (battlerAbility == ability && (ability != ABILITY_NONE || i == 0))
+            return TRUE;
+    }
+
+    return FALSE;
 }
 
 enum Ability GetBattlerAbilityInternal(enum BattlerId battler, bool32 ignoreMoldBreaker, bool32 noAbilityShield)
