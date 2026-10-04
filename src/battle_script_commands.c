@@ -5028,14 +5028,15 @@ static void Cmd_switchindataupdate(void)
     gBattleMons[battler].types[0] = GetSpeciesType(gBattleMons[battler].species, 0);
     gBattleMons[battler].types[1] = GetSpeciesType(gBattleMons[battler].species, 1);
     gBattleMons[battler].types[2] = TYPE_MYSTERY;
-    gBattleMons[battler].ability = GetAbilityBySpecies(gBattleMons[battler].species, gBattleMons[battler].abilityNum);
+    memset(gBattleMons[battler].abilities, 0, sizeof(gBattleMons[battler].abilities));
+    SetBattleMonAbility(&gBattleMons[battler], GetAbilityBySpecies(gBattleMons[battler].species, gBattleMons[battler].abilityNum));
     #if TESTING
     if (gTestRunnerEnabled)
     {
         enum BattleTrainer trainer = GetBattlerTrainer(battler);
         u32 partyIndex = gBattlerPartyIndexes[battler];
         if (TestRunner_Battle_GetForcedAbility(trainer, partyIndex))
-            gBattleMons[battler].ability = TestRunner_Battle_GetForcedAbility(trainer, partyIndex);
+            SetBattleMonAbility(&gBattleMons[battler], TestRunner_Battle_GetForcedAbility(trainer, partyIndex));
     }
     #endif
 
@@ -9011,7 +9012,8 @@ static void Cmd_trycopyability(void)
     {
         RemoveAbilityFlags(battler);
         gBattleScripting.abilityPopupOverwrite = gBattleMons[battler].ability;
-        gBattleMons[battler].ability = gBattleMons[battler].volatiles.overwrittenAbility = defAbility;
+        gBattleMons[battler].volatiles.overwrittenAbility = defAbility;
+        SetBattleMonAbility(&gBattleMons[battler], defAbility);
         gLastUsedAbility = defAbility;
         gBattlescriptCurrInstr = cmd->nextInstr;
     }
@@ -9180,8 +9182,10 @@ static void Cmd_tryswapabilities(void)
             gLastUsedAbility = gBattleMons[gBattlerTarget].ability;
             RemoveAbilityFlags(gBattlerTarget);
             RemoveAbilityFlags(gBattlerAttacker);
-            gBattleMons[gBattlerTarget].ability = gBattleMons[gBattlerTarget].volatiles.overwrittenAbility = gBattleMons[gBattlerAttacker].ability;
-            gBattleMons[gBattlerAttacker].ability = gBattleMons[gBattlerAttacker].volatiles.overwrittenAbility = gLastUsedAbility;
+            gBattleMons[gBattlerTarget].volatiles.overwrittenAbility = gBattleMons[gBattlerAttacker].ability;
+            SetBattleMonAbility(&gBattleMons[gBattlerTarget], gBattleMons[gBattlerTarget].volatiles.overwrittenAbility);
+            gBattleMons[gBattlerAttacker].volatiles.overwrittenAbility = gLastUsedAbility;
+            SetBattleMonAbility(&gBattleMons[gBattlerAttacker], gLastUsedAbility);
 
             gBattlescriptCurrInstr = cmd->nextInstr;
         }
@@ -10637,7 +10641,8 @@ static void Cmd_tryoverwriteability(void)
 
         RemoveAbilityFlags(gBattlerTarget);
         gBattleScripting.abilityPopupOverwrite = gBattleMons[gBattlerTarget].ability;
-        gBattleMons[gBattlerTarget].ability = gBattleMons[gBattlerTarget].volatiles.overwrittenAbility = GetMoveOverwriteAbility(gCurrentMove);
+        gBattleMons[gBattlerTarget].volatiles.overwrittenAbility = GetMoveOverwriteAbility(gCurrentMove);
+        SetBattleMonAbility(&gBattleMons[gBattlerTarget], gBattleMons[gBattlerTarget].volatiles.overwrittenAbility);
         gBattlescriptCurrInstr = cmd->nextInstr;
     }
 }
@@ -12542,7 +12547,8 @@ void BS_SetTracedAbility(void)
 {
     NATIVE_ARGS(u8 battler);
     enum BattlerId battler = GetBattlerForBattleScript(cmd->battler);
-    gBattleMons[battler].ability = gBattleMons[battler].volatiles.overwrittenAbility = gBattleStruct->tracedAbility[battler];
+    gBattleMons[battler].volatiles.overwrittenAbility = gBattleStruct->tracedAbility[battler];
+    SetBattleMonAbility(&gBattleMons[battler], gBattleStruct->tracedAbility[battler]);
     gBattlescriptCurrInstr = cmd->nextInstr;
 }
 
@@ -13041,7 +13047,8 @@ void BS_TryEntrainment(void)
         else
         {
             RemoveAbilityFlags(gBattlerTarget);
-            gBattleMons[gBattlerTarget].ability = gBattleMons[gBattlerTarget].volatiles.overwrittenAbility = gBattleMons[gBattlerAttacker].ability;
+            gBattleMons[gBattlerTarget].volatiles.overwrittenAbility = gBattleMons[gBattlerAttacker].ability;
+            SetBattleMonAbility(&gBattleMons[gBattlerTarget], gBattleMons[gBattlerTarget].volatiles.overwrittenAbility);
             gBattlescriptCurrInstr = cmd->nextInstr;
         }
     }

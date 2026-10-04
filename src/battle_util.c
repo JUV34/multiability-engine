@@ -3875,7 +3875,8 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
 
                 RemoveAbilityFlags(gBattlerAttacker);
                 gLastUsedAbility = gBattleMons[gBattlerAttacker].ability;
-                gBattleMons[gBattlerAttacker].ability = gBattleMons[gBattlerAttacker].volatiles.overwrittenAbility = gBattleMons[gBattlerTarget].ability;
+                gBattleMons[gBattlerAttacker].volatiles.overwrittenAbility = gBattleMons[gBattlerTarget].ability;
+                SetBattleMonAbility(&gBattleMons[gBattlerAttacker], gBattleMons[gBattlerAttacker].volatiles.overwrittenAbility);
                 BattleScriptCall(BattleScript_MummyActivates);
                 effect++;
                 break;
@@ -3901,8 +3902,10 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
 
                 RemoveAbilityFlags(gBattlerAttacker);
                 gLastUsedAbility = gBattleMons[gBattlerAttacker].ability;
-                gBattleMons[gBattlerAttacker].ability = gBattleMons[gBattlerAttacker].volatiles.overwrittenAbility = gBattleMons[gBattlerTarget].ability;
-                gBattleMons[gBattlerTarget].ability = gBattleMons[gBattlerTarget].volatiles.overwrittenAbility = gLastUsedAbility;
+                gBattleMons[gBattlerAttacker].volatiles.overwrittenAbility = gBattleMons[gBattlerTarget].ability;
+                SetBattleMonAbility(&gBattleMons[gBattlerAttacker], gBattleMons[gBattlerAttacker].volatiles.overwrittenAbility);
+                gBattleMons[gBattlerTarget].volatiles.overwrittenAbility = gLastUsedAbility;
+                SetBattleMonAbility(&gBattleMons[gBattlerTarget], gLastUsedAbility);
                 BattleScriptCall(BattleScript_WanderingSpiritActivates);
                 effect++;
                 break;
@@ -9386,14 +9389,16 @@ void CopyMonLevelAndBaseStatsToBattleMon(enum BattlerId battler, struct Pokemon 
 
 void CopyMonAbilityAndTypesToBattleMon(enum BattlerId battler, struct Pokemon *mon)
 {
-    gBattleMons[battler].ability = GetMonAbility(mon);
+    memset(gBattleMons[battler].abilities, 0, sizeof(gBattleMons[battler].abilities));
+    SetBattleMonAbility(&gBattleMons[battler], GetMonAbility(mon));
     #if TESTING
     if (gTestRunnerEnabled)
     {
         u32 array = (!IsPartnerMonFromSameTrainer(battler)) ? battler : GetBattlerSide(battler);
         u32 partyIndex = gBattlerPartyIndexes[battler];
-        if (TestRunner_Battle_GetForcedAbility(array, partyIndex))
-            gBattleMons[battler].ability = TestRunner_Battle_GetForcedAbility(array, partyIndex);
+        u32 forcedAbility = TestRunner_Battle_GetForcedAbility(array, partyIndex);
+        if (forcedAbility)
+            SetBattleMonAbility(&gBattleMons[battler], forcedAbility);
     }
     #endif
     gBattleMons[battler].types[0] = GetSpeciesType(gBattleMons[battler].species, 0);

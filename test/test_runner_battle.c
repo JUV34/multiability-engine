@@ -1988,6 +1988,9 @@ void TestRunner_Battle_AfterLastTurn(void)
 {
     const struct BattleTest *test = GetBattleTest();
 
+    for (enum BattlerId battler = 0; battler < gBattlersCount; battler++)
+        EXPECT_EQ(gBattleMons[battler].ability, gBattleMons[battler].abilities[0]);
+
     if (DATA.turns - 1 != DATA.trial.lastActionTurn)
     {
         const char *filename = gTestRunnerState.test->filename;

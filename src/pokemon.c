@@ -3394,6 +3394,12 @@ void RemoveBattleMonPPBonus(struct BattlePokemon *mon, u8 moveIndex)
     mon->ppBonuses &= gPPUpClearMask[moveIndex];
 }
 
+void SetBattleMonAbility(struct BattlePokemon *mon, enum Ability ability)
+{
+    mon->ability = ability;
+    mon->abilities[0] = ability;
+}
+
 void PokemonToBattleMon(struct Pokemon *src, struct BattlePokemon *dst)
 {
     s32 i;
@@ -3433,7 +3439,8 @@ void PokemonToBattleMon(struct Pokemon *src, struct BattlePokemon *dst)
     dst->types[2] = TYPE_MYSTERY;
     dst->isShiny = IsMonShiny(src);
     dst->affectionHearts = GetMonAffectionHearts(src);
-    dst->ability = GetAbilityBySpecies(dst->species, dst->abilityNum);
+    memset(dst->abilities, 0, sizeof(dst->abilities));
+    SetBattleMonAbility(dst, GetAbilityBySpecies(dst->species, dst->abilityNum));
     GetMonData(src, MON_DATA_NICKNAME, nickname);
     StringCopy_Nickname(dst->nickname, nickname);
     GetMonData(src, MON_DATA_OT_NAME, dst->otName);

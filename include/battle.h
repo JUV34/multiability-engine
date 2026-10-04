@@ -182,6 +182,7 @@ struct FieldTimer
 struct AI_SavedBattleMon
 {
     enum Ability ability;
+    enum Ability abilities[MAX_BATTLER_ABILITIES];
     enum Move moves[MAX_MON_MOVES];
     u16 heldItem;
     u16 species:15;

@@ -1442,7 +1442,7 @@ void BtlController_Complete(enum BattlerId battler)
 
 static u32 GetBattlerMonData(enum BattlerId battler, struct Pokemon *party, u32 monId, u8 *dst)
 {
-    struct BattlePokemon battleMon;
+    struct BattlePokemon battleMon = {0};
     struct MovePpInfo moveData;
     u8 nickname[POKEMON_NAME_LENGTH * 2];
     u8 *src;
@@ -1480,6 +1480,10 @@ static u32 GetBattlerMonData(enum BattlerId battler, struct Pokemon *party, u32 
         battleMon.spAttack = GetMonData(&party[monId], MON_DATA_SPATK);
         battleMon.spDefense = GetMonData(&party[monId], MON_DATA_SPDEF);
         battleMon.abilityNum = GetMonData(&party[monId], MON_DATA_ABILITY_NUM);
+        // Packet construction must not change battle-message attribution.
+        enum Ability lastUsedAbility = gLastUsedAbility;
+        SetBattleMonAbility(&battleMon, GetAbilityBySpecies(battleMon.species, battleMon.abilityNum));
+        gLastUsedAbility = lastUsedAbility;
         battleMon.otId = GetMonData(&party[monId], MON_DATA_OT_ID);
         battleMon.metLevel = GetMonData(&party[monId], MON_DATA_MET_LEVEL);
         battleMon.isShiny = GetMonData(&party[monId], MON_DATA_IS_SHINY);
@@ -1496,7 +1500,7 @@ static u32 GetBattlerMonData(enum BattlerId battler, struct Pokemon *party, u32 
             enum BattleTrainer trainer = GetBattlerTrainer(battler);
             u32 partyIndex = gBattlerPartyIndexes[battler];
             if (TestRunner_Battle_GetForcedAbility(trainer, partyIndex))
-                gBattleMons[battler].ability = TestRunner_Battle_GetForcedAbility(trainer, partyIndex);
+                SetBattleMonAbility(&gBattleMons[battler], TestRunner_Battle_GetForcedAbility(trainer, partyIndex));
         }
         #endif
         break;

@@ -244,6 +244,9 @@ enum SubstructType
     SUBSTRUCT_TYPE_3,
 };
 
+// Battle-only slots; persistent ability selection remains species/abilityNum-based.
+#define MAX_BATTLER_ABILITIES 4
+
 union PokemonSubstruct
 {
     struct PokemonSubstruct0 type0;
@@ -352,7 +355,8 @@ struct BattlePokemon
     u32 spDefenseIV:5;
     u32 abilityNum:2;
     s8 statStages[NUM_BATTLE_STATS];
-    enum Ability ability;
+    enum Ability ability; // Canonical primary; use SetBattleMonAbility to maintain its mirror.
+    enum Ability abilities[MAX_BATTLER_ABILITIES]; // Slot 0 mirrors ability; extras are inactive.
     enum Type types[3];
     u8 pp[MAX_MON_MOVES];
     u16 hp;
@@ -842,6 +846,7 @@ void RemoveMonPPBonus(struct Pokemon *mon, u8 moveIndex);
 void RemoveBoxMonPPBonus(struct BoxPokemon *mon, u8 moveIndex);
 void RemoveBattleMonPPBonus(struct BattlePokemon *mon, u8 moveIndex);
 void PokemonToBattleMon(struct Pokemon *src, struct BattlePokemon *dst);
+void SetBattleMonAbility(struct BattlePokemon *mon, enum Ability ability);
 void CopyPartyMonToBattleData(enum BattlerId battler, u32 partyIndex);
 bool8 ExecuteTableBasedItemEffect(struct Pokemon *mon, enum Item item, u8 partyIndex, u8 moveIndex);
 bool8 PokemonUseItemEffects(struct Pokemon *mon, enum Item item, u8 partyIndex, u8 moveIndex, u8 usedByAI);

@@ -66,3 +66,9 @@ tools/aif2pcm/aif2pcm
 *.smolTM
 __pycache__
 .map_version
+references/
+.qwen/
+AGENTS.md
+PROJECT_CONTEXT.md
+REPORT1.md
+REPORT_MS1.md

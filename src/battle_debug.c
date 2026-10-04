@@ -1581,7 +1581,10 @@ static void UpdateBattlerValue(struct BattleDebugMenu *data)
         *(s8 *)(data->modifyArrows.modifiedValPtr) = data->modifyArrows.currValue;
         break;
     case VAL_U16:
-        *(u16 *)(data->modifyArrows.modifiedValPtr) = data->modifyArrows.currValue;
+        if (data->currentMainListItemId == LIST_ITEM_ABILITY)
+            SetBattleMonAbility(&gBattleMons[data->battlerId], data->modifyArrows.currValue);
+        else
+            *(u16 *)(data->modifyArrows.modifiedValPtr) = data->modifyArrows.currValue;
         break;
     case VAR_U16_4_ENTRIES:
         ((u16 *)(data->modifyArrows.modifiedValPtr))[0] = data->modifyArrows.currValue;

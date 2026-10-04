@@ -10,6 +10,43 @@
 #include "constants/daycare.h"
 #include "constants/move_relearner.h"
 
+TEST("MS1-R natural and hidden selectors survive PokemonToBattleMon")
+{
+    u32 selector = 0;
+    enum Ability ability = ABILITY_NONE;
+    struct Pokemon mon;
+    struct BattlePokemon battleMon;
+
+    PARAMETRIZE { selector = 0; ability = ABILITY_SYNCHRONIZE; }
+    PARAMETRIZE { selector = 1; ability = ABILITY_TRACE; }
+    PARAMETRIZE { selector = 2; ability = ABILITY_TELEPATHY; }
+
+    CreateMon(&mon, SPECIES_RALTS, 50, selector & 1, OTID_STRUCT_PRESET(0));
+    EXPECT_EQ(GetMonData(&mon, MON_DATA_ABILITY_NUM), selector & 1);
+    SetMonData(&mon, MON_DATA_ABILITY_NUM, &selector);
+    EXPECT_EQ(GetMonAbility(&mon), ability);
+
+    memset(&battleMon, 0xA5, sizeof(battleMon));
+    PokemonToBattleMon(&mon, &battleMon);
+    EXPECT_EQ(battleMon.ability, ability);
+    EXPECT_EQ(battleMon.abilities[0], ability);
+    for (u32 slot = 1; slot < MAX_BATTLER_ABILITIES; slot++)
+        EXPECT_EQ(battleMon.abilities[slot], ABILITY_NONE);
+
+}
+
+TEST("MS1-R primary setter preserves injected extras and message attribution")
+{
+    struct BattlePokemon mon = {0};
+    enum Ability previous = gLastUsedAbility;
+    mon.abilities[1] = ABILITY_RIPEN;
+    SetBattleMonAbility(&mon, ABILITY_BLAZE);
+    EXPECT_EQ(mon.ability, ABILITY_BLAZE);
+    EXPECT_EQ(mon.abilities[0], ABILITY_BLAZE);
+    EXPECT_EQ(mon.abilities[1], ABILITY_RIPEN);
+    EXPECT_EQ(gLastUsedAbility, previous);
+}
+
 TEST("Nature independent from Hidden Nature")
 {
     u32 i, j, nature = 0, hiddenNature = 0;

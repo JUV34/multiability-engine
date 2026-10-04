@@ -3255,7 +3255,7 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
         enum BattleTrainer trainer = GetBattlerTrainer(battler);
         u32 partyIndex = gBattlerPartyIndexes[battler];
         if (TestRunner_Battle_GetForcedAbility(trainer, partyIndex))
-            gBattleMons[battler].ability = TestRunner_Battle_GetForcedAbility(trainer, partyIndex);
+            SetBattleMonAbility(&gBattleMons[battler], TestRunner_Battle_GetForcedAbility(trainer, partyIndex));
     }
     #endif // TESTING
 
@@ -3414,7 +3414,8 @@ static void DoBattleIntro(void)
                 gBattleMons[battler].types[0] = GetSpeciesType(gBattleMons[battler].species, 0);
                 gBattleMons[battler].types[1] = GetSpeciesType(gBattleMons[battler].species, 1);
                 gBattleMons[battler].types[2] = TYPE_MYSTERY;
-                gBattleMons[battler].ability = GetAbilityBySpecies(gBattleMons[battler].species, gBattleMons[battler].abilityNum);
+                memset(gBattleMons[battler].abilities, 0, sizeof(gBattleMons[battler].abilities));
+                SetBattleMonAbility(&gBattleMons[battler], GetAbilityBySpecies(gBattleMons[battler].species, gBattleMons[battler].abilityNum));
                 gBattleStruct->battlerState[battler].hpOnSwitchout = gBattleMons[battler].hp;
                 memset(&gBattleMons[battler].volatiles, 0, sizeof(struct Volatiles));
                 for (i = 0; i < NUM_BATTLE_STATS; i++)
@@ -3425,7 +3426,7 @@ static void DoBattleIntro(void)
                     enum BattleTrainer trainer = GetBattlerTrainer(battler);
                     u32 partyIndex = gBattlerPartyIndexes[battler];
                     if (TestRunner_Battle_GetForcedAbility(trainer, partyIndex))
-                        gBattleMons[battler].ability = TestRunner_Battle_GetForcedAbility(trainer, partyIndex);
+                        SetBattleMonAbility(&gBattleMons[battler], TestRunner_Battle_GetForcedAbility(trainer, partyIndex));
                 }
                 #endif
             }
@@ -3724,7 +3725,7 @@ static void TryDoEventsBeforeFirstTurn(void)
                 enum BattleTrainer trainer = GetBattlerTrainer(battler);
                 u32 partyIndex = gBattlerPartyIndexes[battler];
                 if (TestRunner_Battle_GetForcedAbility(trainer, partyIndex))
-                    gBattleMons[battler].ability = TestRunner_Battle_GetForcedAbility(trainer, partyIndex);
+                    SetBattleMonAbility(&gBattleMons[battler], TestRunner_Battle_GetForcedAbility(trainer, partyIndex));
             }
         }
         #endif // TESTING

@@ -258,6 +258,8 @@ void SaveBattlerData(enum BattlerId battlerId)
     {
         gAiThinkingStruct->saved[battlerId].saved = TRUE;
         gAiThinkingStruct->saved[battlerId].ability = gBattleMons[battlerId].ability;
+        for (u32 abilitySlot = 0; abilitySlot < MAX_BATTLER_ABILITIES; abilitySlot++)
+            gAiThinkingStruct->saved[battlerId].abilities[abilitySlot] = gBattleMons[battlerId].abilities[abilitySlot];
         gAiThinkingStruct->saved[battlerId].heldItem = gBattleMons[battlerId].item;
         gAiThinkingStruct->saved[battlerId].species = gBattleMons[battlerId].species;
         for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
@@ -387,15 +389,18 @@ void SetBattlerData(enum BattlerId battlerId)
         }
 
         // Use the known battler's ability.
+        enum Ability abilityToSet;
         if (gAiPartyData->mons[side][gBattlerPartyIndexes[battlerId]].ability != ABILITY_NONE)
-            gBattleMons[battlerId].ability = gAiPartyData->mons[side][gBattlerPartyIndexes[battlerId]].ability;
+            abilityToSet = gAiPartyData->mons[side][gBattlerPartyIndexes[battlerId]].ability;
         // Check if mon can only have one ability.
         else if (GetSpeciesAbility(species, 1) == ABILITY_NONE
                 || GetSpeciesAbility(species, 1) == GetSpeciesAbility(species, 0))
-            gBattleMons[battlerId].ability = GetSpeciesAbility(species, 0);
+            abilityToSet = GetSpeciesAbility(species, 0);
         // The ability is unknown.
         else
-            gBattleMons[battlerId].ability = ABILITY_NONE;
+            abilityToSet = ABILITY_NONE;
+
+        SetBattleMonAbility(&gBattleMons[battlerId], abilityToSet);
 
         if (gAiPartyData->mons[side][gBattlerPartyIndexes[battlerId]].heldEffect == 0)
             gBattleMons[battlerId].item = ITEM_NONE;
@@ -413,7 +418,9 @@ void RestoreBattlerData(enum BattlerId battlerId)
     if (!BattlerHasAi(battlerId) && gAiThinkingStruct->saved[battlerId].saved)
     {
         gAiThinkingStruct->saved[battlerId].saved = FALSE;
-        gBattleMons[battlerId].ability = gAiThinkingStruct->saved[battlerId].ability;
+        for (u32 abilitySlot = 1; abilitySlot < MAX_BATTLER_ABILITIES; abilitySlot++)
+            gBattleMons[battlerId].abilities[abilitySlot] = gAiThinkingStruct->saved[battlerId].abilities[abilitySlot];
+        SetBattleMonAbility(&gBattleMons[battlerId], gAiThinkingStruct->saved[battlerId].ability);
         gBattleMons[battlerId].item = gAiThinkingStruct->saved[battlerId].heldItem;
         gBattleMons[battlerId].species = gAiThinkingStruct->saved[battlerId].species;
         for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
