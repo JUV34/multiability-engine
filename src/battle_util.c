@@ -4821,12 +4821,14 @@ bool32 IsMoldBreakerTypeAbility(enum BattlerId battler, enum Ability ability)
     return FALSE;
 }
 
-static inline bool32 CanBreakThroughAbility(enum BattlerId battlerAtk, enum BattlerId battlerDef, bool32 hasAbilityShield, bool32 ignoreMoldBreaker)
+static inline bool32 CanBreakThroughAbility(enum BattlerId battlerAtk, enum BattlerId battlerDef, enum Ability ability, bool32 hasAbilityShield, bool32 ignoreMoldBreaker)
 {
     if (hasAbilityShield || ignoreMoldBreaker || battlerDef == battlerAtk)
         return FALSE;
-    return gBattleStruct->moldBreakerActive && gAbilitiesInfo[gBattleMons[battlerDef].ability].breakable;
+    return gBattleStruct->moldBreakerActive && gAbilitiesInfo[ability].breakable;
 }
+
+static enum Ability GetActiveBattlerAbility(enum BattlerId battler, enum Ability ability, bool32 ignoreMoldBreaker, bool32 noAbilityShield);
 
 enum Ability GetBattlerAbilityNoAbilityShield(enum BattlerId battler)
 {
@@ -4843,33 +4845,55 @@ enum Ability GetBattlerAbility(enum BattlerId battler)
     return GetBattlerAbilityInternal(battler, FALSE, FALSE);
 }
 
+enum Ability GetBattlerAbilityRawAt(enum BattlerId battler, u32 slot)
+{
+    if ((u32)battler >= MAX_BATTLERS_COUNT || slot >= MAX_BATTLER_ABILITIES)
+        return ABILITY_NONE;
+
+    // The primary remains canonical even while its slot-0 mirror exists.
+    enum Ability ability = slot == 0 ? gBattleMons[battler].ability : gBattleMons[battler].abilities[slot];
+    return (u32)ability < ABILITIES_COUNT ? ability : ABILITY_NONE;
+}
+
 enum Ability GetBattlerAbilityAt(enum BattlerId battler, u32 slot)
 {
-    switch (slot)
-    {
-    case 0:
-        return GetBattlerAbility(battler);
-    default:
+    if ((u32)battler >= gBattlersCount || (u32)battler >= MAX_BATTLERS_COUNT || slot >= MAX_BATTLER_ABILITIES)
         return ABILITY_NONE;
-    }
+
+    enum Ability ability = GetBattlerAbilityRawAt(battler, slot);
+    if (slot != 0 && ability == ABILITY_NONE)
+        return ABILITY_NONE;
+
+    return GetActiveBattlerAbility(battler, ability, FALSE, FALSE);
 }
 
 bool32 BattlerHasAbility(enum BattlerId battler, enum Ability ability)
 {
-    for (u32 i = 0; i < MAX_BATTLER_ABILITIES; i++)
-    {
-        enum Ability battlerAbility = GetBattlerAbilityAt(battler, i);
-        if (battlerAbility == ability && (ability != ABILITY_NONE || i == 0))
+    if ((u32)battler >= gBattlersCount || (u32)battler >= MAX_BATTLERS_COUNT || (u32)ability >= ABILITIES_COUNT)
+        return FALSE;
+
+    if (GetBattlerAbility(battler) == ability)
+        return TRUE;
+    if (ability == ABILITY_NONE)
+        return FALSE;
+
+    // Most callers have no extras; only filter a slot that can actually match.
+    for (u32 slot = 1; slot < MAX_BATTLER_ABILITIES; slot++)
+        if (gBattleMons[battler].abilities[slot] == ability && GetBattlerAbilityAt(battler, slot) == ability)
             return TRUE;
-    }
 
     return FALSE;
 }
 
 enum Ability GetBattlerAbilityInternal(enum BattlerId battler, bool32 ignoreMoldBreaker, bool32 noAbilityShield)
 {
+    return GetActiveBattlerAbility(battler, gBattleMons[battler].ability, ignoreMoldBreaker, noAbilityShield);
+}
+
+static enum Ability GetActiveBattlerAbility(enum BattlerId battler, enum Ability ability, bool32 ignoreMoldBreaker, bool32 noAbilityShield)
+{
     bool32 hasAbilityShield = !noAbilityShield && GetBattlerHoldEffectIgnoreAbility(battler) == HOLD_EFFECT_ABILITY_SHIELD;
-    bool32 abilityCantBeSuppressed = gAbilitiesInfo[gBattleMons[battler].ability].cantBeSuppressed;
+    bool32 abilityCantBeSuppressed = gAbilitiesInfo[ability].cantBeSuppressed;
 
     if (gBattleStruct->battlerState[battler].notOnField || gSpecialStatuses[battler].attackerInParty)
         return ABILITY_NONE;
@@ -4879,13 +4903,13 @@ enum Ability GetBattlerAbilityInternal(enum BattlerId battler, bool32 ignoreMold
         // Edge case: Pokémon under the effect of gastro acid transforms into a Pokémon with Comatose (Todo: verify how other unsuppressable abilities behave)
         if (gBattleMons[battler].volatiles.transformed
             && gBattleMons[battler].volatiles.gastroAcid
-            && gBattleMons[battler].ability == ABILITY_COMATOSE)
+            && ability == ABILITY_COMATOSE)
                 return ABILITY_NONE;
 
-        if (CanBreakThroughAbility(gBattlerAttacker, battler, hasAbilityShield, ignoreMoldBreaker))
+        if (CanBreakThroughAbility(gBattlerAttacker, battler, ability, hasAbilityShield, ignoreMoldBreaker))
             return ABILITY_NONE;
 
-        return gBattleMons[battler].ability;
+        return ability;
     }
 
     if (gBattleMons[battler].volatiles.gastroAcid)
@@ -4893,13 +4917,13 @@ enum Ability GetBattlerAbilityInternal(enum BattlerId battler, bool32 ignoreMold
 
     if (!hasAbilityShield
      && IsNeutralizingGasOnField()
-     && (gBattleMons[battler].ability != ABILITY_NEUTRALIZING_GAS || gBattleMons[battler].volatiles.gastroAcid))
+     && (ability != ABILITY_NEUTRALIZING_GAS || gBattleMons[battler].volatiles.gastroAcid))
         return ABILITY_NONE;
 
-    if (CanBreakThroughAbility(gBattlerAttacker, battler, hasAbilityShield, ignoreMoldBreaker))
+    if (CanBreakThroughAbility(gBattlerAttacker, battler, ability, hasAbilityShield, ignoreMoldBreaker))
         return ABILITY_NONE;
 
-    return gBattleMons[battler].ability;
+    return ability;
 }
 
 u32 IsAbilityOnSide(enum BattlerId battler, enum Ability ability)

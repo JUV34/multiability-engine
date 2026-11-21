@@ -47,6 +47,32 @@ TEST("MS1-R primary setter preserves injected extras and message attribution")
     EXPECT_EQ(gLastUsedAbility, previous);
 }
 
+TEST("MS2 bounded slot writes preserve primary mirrors and reject invalid inputs")
+{
+    struct BattlePokemon mon = {0};
+    struct BattlePokemon before;
+    enum Ability previous = gLastUsedAbility;
+
+    EXPECT(SetBattleMonAbilityAt(&mon, 0, ABILITY_BLAZE));
+    for (u32 slot = 1; slot < MAX_BATTLER_ABILITIES; slot++)
+    {
+        EXPECT(SetBattleMonAbilityAt(&mon, slot, (enum Ability)(ABILITIES_COUNT - 1)));
+        EXPECT_EQ(mon.abilities[slot], ABILITIES_COUNT - 1);
+        EXPECT_EQ(mon.ability, ABILITY_BLAZE);
+        EXPECT_EQ(mon.abilities[0], ABILITY_BLAZE);
+    }
+    before = mon;
+    EXPECT(!SetBattleMonAbilityAt(&mon, MAX_BATTLER_ABILITIES, ABILITY_NONE));
+    EXPECT(!SetBattleMonAbilityAt(&mon, (u32)-1, ABILITY_NONE));
+    EXPECT(!SetBattleMonAbilityAt(&mon, 0, ABILITIES_COUNT));
+    EXPECT(!SetBattleMonAbilityAt(&mon, 1, (enum Ability)-1));
+    EXPECT(!SetBattleMonAbilityAt(NULL, 0, ABILITY_BLAZE));
+    EXPECT_EQ(memcmp(&mon, &before, sizeof(mon)), 0);
+    EXPECT(SetBattleMonAbilityAt(&mon, 1, ABILITY_NONE));
+    EXPECT_EQ(mon.abilities[1], ABILITY_NONE);
+    EXPECT_EQ(gLastUsedAbility, previous);
+}
+
 TEST("Nature independent from Hidden Nature")
 {
     u32 i, j, nature = 0, hiddenNature = 0;

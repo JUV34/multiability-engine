@@ -252,6 +252,33 @@ enum Move GetPredictedMove(enum BattlerId battler, enum BattlerId opposingBattle
     return MOVE_NONE;
 }
 
+void AI_SaveAndMaskExtraAbilities(struct AiExtraAbilitySnapshot *snapshot)
+{
+    snapshot->maskedBattlers = 0;
+    for (enum BattlerId battler = 0; battler < MAX_BATTLERS_COUNT; battler++)
+    {
+        if (BattlerHasAi(battler))
+            continue;
+        snapshot->maskedBattlers |= 1u << battler;
+        for (u32 slot = 1; slot < MAX_BATTLER_ABILITIES; slot++)
+        {
+            snapshot->abilities[battler][slot - 1] = gBattleMons[battler].abilities[slot];
+            gBattleMons[battler].abilities[slot] = ABILITY_NONE;
+        }
+    }
+}
+
+void AI_RestoreExtraAbilities(const struct AiExtraAbilitySnapshot *snapshot)
+{
+    for (enum BattlerId battler = 0; battler < MAX_BATTLERS_COUNT; battler++)
+    {
+        if (!(snapshot->maskedBattlers & (1u << battler)))
+            continue;
+        for (u32 slot = 1; slot < MAX_BATTLER_ABILITIES; slot++)
+            gBattleMons[battler].abilities[slot] = snapshot->abilities[battler][slot - 1];
+    }
+}
+
 void SaveBattlerData(enum BattlerId battlerId)
 {
     if (!BattlerHasAi(battlerId) && !gAiThinkingStruct->saved[battlerId].saved)
@@ -401,6 +428,9 @@ void SetBattlerData(enum BattlerId battlerId)
             abilityToSet = ABILITY_NONE;
 
         SetBattleMonAbility(&gBattleMons[battlerId], abilityToSet);
+        // There is no extra-slot knowledge cache yet; do not reveal hidden extras.
+        for (u32 slot = 1; slot < MAX_BATTLER_ABILITIES; slot++)
+            gBattleMons[battlerId].abilities[slot] = ABILITY_NONE;
 
         if (gAiPartyData->mons[side][gBattlerPartyIndexes[battlerId]].heldEffect == 0)
             gBattleMons[battlerId].item = ITEM_NONE;
@@ -904,6 +934,9 @@ struct SimulatedDamage AI_CalcDamage(enum Move move, enum BattlerId battlerAtk, 
      && battlerDef == BATTLE_PARTNER(battlerAtk))
         return simDamage;
 
+    struct AiExtraAbilitySnapshot extraAbilities;
+    AI_SaveAndMaskExtraAbilities(&extraAbilities);
+
     if (moveEffect == EFFECT_NATURE_POWER)
         move = GetNaturePowerMove();
 
@@ -1031,6 +1064,7 @@ struct SimulatedDamage AI_CalcDamage(enum Move move, enum BattlerId battlerAtk, 
     if (toggledGimmickDef)
         SetActiveGimmick(battlerDef, GIMMICK_NONE);
     gAiLogicData->aiCalcInProgress = FALSE;
+    AI_RestoreExtraAbilities(&extraAbilities);
     return simDamage;
 }
 
@@ -1373,6 +1407,8 @@ u32 GetCurrDamageHpPercent(enum BattlerId battlerAtk, enum BattlerId battlerDef,
 uq4_12_t AI_GetMoveEffectiveness(enum Move move, enum BattlerId battlerAtk, enum BattlerId battlerDef)
 {
     uq4_12_t typeEffectiveness;
+    struct AiExtraAbilitySnapshot extraAbilities;
+    AI_SaveAndMaskExtraAbilities(&extraAbilities);
 
     SaveBattlerData(battlerAtk);
     SaveBattlerData(battlerDef);
@@ -1397,6 +1433,7 @@ uq4_12_t AI_GetMoveEffectiveness(enum Move move, enum BattlerId battlerAtk, enum
     RestoreBattlerData(battlerAtk);
     RestoreBattlerData(battlerDef);
 
+    AI_RestoreExtraAbilities(&extraAbilities);
     return typeEffectiveness;
 }
 

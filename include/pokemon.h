@@ -847,6 +847,8 @@ void RemoveBoxMonPPBonus(struct BoxPokemon *mon, u8 moveIndex);
 void RemoveBattleMonPPBonus(struct BattlePokemon *mon, u8 moveIndex);
 void PokemonToBattleMon(struct Pokemon *src, struct BattlePokemon *dst);
 void SetBattleMonAbility(struct BattlePokemon *mon, enum Ability ability);
+// Invalid writes leave all slots unchanged; slot 0 also updates the primary mirror.
+bool32 SetBattleMonAbilityAt(struct BattlePokemon *mon, u32 slot, enum Ability ability);
 void CopyPartyMonToBattleData(enum BattlerId battler, u32 partyIndex);
 bool8 ExecuteTableBasedItemEffect(struct Pokemon *mon, enum Item item, u8 partyIndex, u8 moveIndex);
 bool8 PokemonUseItemEffects(struct Pokemon *mon, enum Item item, u8 partyIndex, u8 moveIndex, u8 usedByAI);

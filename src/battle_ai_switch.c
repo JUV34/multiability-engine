@@ -2581,7 +2581,18 @@ static u32 GetNextMonInParty(struct Pokemon *party, int lastId, enum BattlerId b
     return PARTY_SIZE;
 }
 
+static u32 GetMostSuitableMonToSwitchIntoInternal(enum BattlerId battler, enum SwitchType switchType);
+
 u32 GetMostSuitableMonToSwitchInto(enum BattlerId battler, enum SwitchType switchType)
+{
+    struct AiExtraAbilitySnapshot extraAbilities;
+    AI_SaveAndMaskExtraAbilities(&extraAbilities);
+    u32 mon = GetMostSuitableMonToSwitchIntoInternal(battler, switchType);
+    AI_RestoreExtraAbilities(&extraAbilities);
+    return mon;
+}
+
+static u32 GetMostSuitableMonToSwitchIntoInternal(enum BattlerId battler, enum SwitchType switchType)
 {
     enum BattlerId opposingBattler = 0;
     u32 bestMonId = PARTY_SIZE;

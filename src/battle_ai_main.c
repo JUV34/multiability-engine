@@ -400,6 +400,8 @@ void SetupAIPredictionData(enum BattlerId battler, enum SwitchType switchType)
 
 void ComputeAiBattlerDecisions(enum BattlerId battler)
 {
+    struct AiExtraAbilitySnapshot extraAbilities;
+    AI_SaveAndMaskExtraAbilities(&extraAbilities);
     gAiLogicData->aiCalcInProgress = TRUE;
 
         AIDebugTimerStart();
@@ -427,6 +429,7 @@ void ComputeAiBattlerDecisions(enum BattlerId battler)
         AIDebugTimerEnd();
 
     gAiLogicData->aiCalcInProgress = FALSE;
+    AI_RestoreExtraAbilities(&extraAbilities);
 }
 
 void ReconsiderGimmick(enum BattlerId battlerAtk, enum BattlerId battlerDef, enum Move move)
@@ -508,6 +511,8 @@ void AI_TrySwitchOrUseItem(enum BattlerId battler)
 u32 BattleAI_ChooseMoveIndex(enum BattlerId battler)
 {
     u32 chosenMoveIndex;
+    struct AiExtraAbilitySnapshot extraAbilities;
+    AI_SaveAndMaskExtraAbilities(&extraAbilities);
 
     SetAIUsingGimmick(battler, USE_GIMMICK);
     SetupRandomRollsForAIMoveSelection(battler);
@@ -527,6 +532,7 @@ u32 BattleAI_ChooseMoveIndex(enum BattlerId battler)
     TestRunner_Battle_CheckAiMoveScores(battler);
     #endif // TESTING
 
+    AI_RestoreExtraAbilities(&extraAbilities);
     return chosenMoveIndex;
 }
 
@@ -658,6 +664,8 @@ void SetBattlerAiData(enum BattlerId battler, struct AiLogicData *aiData)
 {
     enum Ability ability;
     enum HoldEffect holdEffect;
+    struct AiExtraAbilitySnapshot extraAbilities;
+    AI_SaveAndMaskExtraAbilities(&extraAbilities);
 
     ability = aiData->abilities[battler] = AI_DecideKnownAbilityForTurn(battler);
     aiData->items[battler] = gBattleMons[battler].item;
@@ -672,6 +680,7 @@ void SetBattlerAiData(enum BattlerId battler, struct AiLogicData *aiData)
 
     if (IsAiBattlerAssumingStatusMoves(battler))
         RecordStatusMoves(battler);
+    AI_RestoreExtraAbilities(&extraAbilities);
 }
 
 #define BYPASSES_ACCURACY_CALC 101 // 101 indicates for ai that the move will always hit
@@ -763,6 +772,8 @@ void SetAiLogicDataForTurn(struct AiLogicData *aiData)
     if (!IsSmartBattle())
         return;
 
+    struct AiExtraAbilitySnapshot extraAbilities;
+    AI_SaveAndMaskExtraAbilities(&extraAbilities);
     gAiLogicData->aiCalcInProgress = TRUE;
     AIDebugTimerStart();
 
@@ -803,6 +814,7 @@ void SetAiLogicDataForTurn(struct AiLogicData *aiData)
 
     AIDebugTimerEnd();
     gAiLogicData->aiCalcInProgress = FALSE;
+    AI_RestoreExtraAbilities(&extraAbilities);
 }
 
 enum Ability GetPartyMonAbility(struct Pokemon *mon)

@@ -3400,6 +3400,19 @@ void SetBattleMonAbility(struct BattlePokemon *mon, enum Ability ability)
     mon->abilities[0] = ability;
 }
 
+bool32 SetBattleMonAbilityAt(struct BattlePokemon *mon, u32 slot, enum Ability ability)
+{
+    if (mon == NULL || slot >= MAX_BATTLER_ABILITIES || (u32)ability >= ABILITIES_COUNT)
+        return FALSE;
+
+    if (slot == 0)
+        SetBattleMonAbility(mon, ability);
+    else
+        mon->abilities[slot] = ability;
+
+    return TRUE;
+}
+
 void PokemonToBattleMon(struct Pokemon *src, struct BattlePokemon *dst)
 {
     s32 i;

@@ -4,6 +4,16 @@
 #include "battle_ai_main.h"
 #include "battle_ai_field_statuses.h"
 
+// Stack-local state for nested AI calculations; never part of a save or cache.
+struct AiExtraAbilitySnapshot
+{
+    enum Ability abilities[MAX_BATTLERS_COUNT][MAX_BATTLER_ABILITIES - 1];
+    u32 maskedBattlers;
+};
+
+void AI_SaveAndMaskExtraAbilities(struct AiExtraAbilitySnapshot *snapshot);
+void AI_RestoreExtraAbilities(const struct AiExtraAbilitySnapshot *snapshot);
+
 // Roll boundaries used by AI when scoring. Doesn't affect actual damage dealt.
 #define MAX_ROLL_PERCENTAGE DMG_ROLL_PERCENT_HI
 #define MIN_ROLL_PERCENTAGE DMG_ROLL_PERCENT_LO

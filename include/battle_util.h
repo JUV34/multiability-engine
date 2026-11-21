@@ -217,6 +217,8 @@ enum Ability GetBattlerAbilityIgnoreMoldBreaker(enum BattlerId battler);
 enum Ability GetBattlerAbilityNoAbilityShield(enum BattlerId battler);
 enum Ability GetBattlerAbilityInternal(enum BattlerId battler, bool32 ignoreMoldBreaker, bool32 noAbilityShield);
 enum Ability GetBattlerAbility(enum BattlerId battler);
+// Raw lookup is bounded storage access; active lookup applies battle eligibility.
+enum Ability GetBattlerAbilityRawAt(enum BattlerId battler, u32 slot);
 enum Ability GetBattlerAbilityAt(enum BattlerId battler, u32 slot);
 bool32 BattlerHasAbility(enum BattlerId battler, enum Ability ability);
 u32 IsAbilityOnSide(enum BattlerId battler, enum Ability ability);
